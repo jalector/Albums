@@ -11,9 +11,15 @@ $.ajax({
             let div = $('<div>', {
                 class: "album animated",
                 'data-albumId': album.id,
-                html: $('<p>',{
-                        html: "Name: " + album.title
-                })                
+                html: [
+                    $('<p>',{
+                            html: "Name: " + album.title
+                    }),
+                    $('<div>', {
+                        id: 'card-container' + album.id,
+                        class:'card-columns'
+                    })
+                ]           
             });
 
             
@@ -43,7 +49,13 @@ class Album {
         this.html.click( ( event )=>  {
             this.html.addClass('bounce')
            
-            this.getPhotos();
+            if(this.photos.length > 0){
+                this.html.find('#card-container' + this.id).empty();
+                this.photos = [];
+            } else{
+                this.getPhotos();
+            }
+
             setTimeout(() => {
                 this.html.removeClass('bounce');
             },  2000);
@@ -56,10 +68,7 @@ class Album {
             url: API + "/photos?albumId=" + this.id +"&_limit=7",
             method: 'GET',
             success: ( answer ) => {
-                let cards = $('<div>', {
-                    id: 'card-container' + this.id,
-                    class:'card-columns'
-                });
+                let cards = this.html.find('#card-container' + this.id);
 
                 for(let rawPhoto of answer){                    
                     let photo = new Photo(rawPhoto.id, rawPhoto.title, rawPhoto.url, rawPhoto.thumbnailUrl);
@@ -83,8 +92,7 @@ class Album {
                     photo.html = div;                                         
                     this.photos.push( photo );
                     cards.append( photo.html );
-                }
-                this.html.append( cards ); 
+                }                
             }, 
             failure: ( error ) => {
                 console.err( error );
@@ -101,6 +109,5 @@ class Photo {
         this.url = url;
         this.miniUrl = miniUrl;
         this.html = null;
-        console.log( this );
     }
 }
